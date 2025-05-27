@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center" style="padding: 50px;">
+    <h1 class="text-success">🎉 Payment Successful!</h1>
+    <p class="lead">Thank you for your purchase, {{ request.user.first_name }}!</p>
+
+    <div class="card mt-4 shadow-sm" style="max-width: 500px; margin: auto;">
+        <div class="card-body">
+            <h5 class="card-title">Order Summary</h5>
+            <hr>
+            <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+            <p><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+            <p><strong>Payment Method:</strong> {{ payment.payment_method|title }}</p>
+            <p><strong>Amount Paid:</strong> Rs. {{ payment.amount_paid }}</p>
+            <p><strong>Status:</strong> {{ payment.status|title }}</p>
+        </div>
+    </div>
+
+    <a href="{% url 'store' %}" class="btn btn-primary mt-4">Continue Shopping 🛒</a>
+</div>
+{% endblock %}

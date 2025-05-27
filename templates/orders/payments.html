@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+  <div class="container">
+  
+    <h4 class="text-center mb-10"> Review Your Order and Make Payment</h4>
+    <div class="row">
+      
+      <aside class="col-lg-8">
+        <div class="card mb-3">
+          <h5 class="card-header">Billing Address</h5>
+          <div class="card-body">
+            <p class="card-text mb-0">{{ order.full_name }}</p>
+            <p class="card-text mb-0">{{ order.full_address }}</p>
+            <p class="card-text mb-0">{{ order.city }}, {{ order.state }}</p>
+            <p class="card-text mb-0">{{ order.country }}</p>
+            <p class="card-text mb-0">{{ order.email }}</p>
+            <p class="card-text mb-0">{{ order.phone }}</p>
+            {% if order.order_note %}
+              <b>Order Note:</b> {{ order.order_note }}
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <h5 class="card-header">Review Products</h5>
+          <div class="card-body">
+            <table class="table table-borderless table-shopping-cart">
+              <thead class="text-muted">
+                <tr class="small text-uppercase">
+                  <th scope="col">Product</th>
+                  <th scope="col" width="120">Quantity</th>
+                  <th scope="col" width="120">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cart_item in cart_items %}
+                <tr>
+                  <td>
+                    <figure class="itemside align-items-center">
+                      <div class="aside">
+                        <img src="{{ cart_item.product.images.url }}" class="img-sm">
+                      </div>
+                      <figcaption class="info">
+                        <a href="{{ cart_item.product.get_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
+                        <p class="text-muted small">
+                          {% if cart_item.variations.all %}
+                            {% for item in cart_item.variations.all %}
+                              {{ item.variation_category|capfirst }} : {{ item.variation_value|capfirst }}<br>
+                            {% endfor %}
+                          {% endif %}
+                        </p>
+                      </figcaption>
+                    </figure>
+                  </td>
+                  <td><label>{{ cart_item.quantity }}</label></td>
+                  <td>
+                    <div class="price-wrap">
+                      <var class="price">Rs.{{ cart_item.sub_total }}</var>
+                      <small class="text-muted">Rs.{{ cart_item.product.price }} each</small>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="col-lg-4">
+        <div class="card">
+          <div class="card-body">
+            <dl class="dlist-align">
+              <dt>Total price:</dt>
+              <dd class="text-right">Rs.{{ total }}</dd>
+            </dl>
+            <dl class="dlist-align">
+              <dt>Tax:</dt>
+              <dd class="text-right">Rs.{{ tax }}</dd>
+            </dl>
+            <dl class="dlist-align">
+              <dt>Grand Total:</dt>
+              <dd class="text-right text-dark b"><strong>Rs.{{ grand_total }}</strong></dd>
+            </dl>
+            <hr>
+            <p class="text-center mb-3">
+              <img src="{% static './images/misc/payments.png' %}" height="26">
+            </p>
+
+            <!-- Pay Now Button -->
+            <button id="pay-now-button" class="btn btn-primary btn-block">Pay Now</button>
+
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- Stripe JavaScript -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+    var stripe = Stripe('{{ stripe_public_key }}'); // Public key from backend
+
+    var payButton = document.getElementById("pay-now-button");
+
+    payButton.addEventListener("click", function () {
+      
+        fetch("{% url 'create-checkout-session' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({
+                order_id: "{{ order.id }}",
+                amount: "{{ grand_total|floatformat:2 }}" // send amount if needed
+            })
+        })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (session) {
+            return stripe.redirectToCheckout({ sessionId: session.id });
+        })
+        .then(function (result) {
+            if (result.error) {
+                alert(result.error.message);
+            }
+        })
+        .catch(function (error) {
+            console.error("Error:", error);
+        });
+    });
+</script>
+
+
+{% endblock %}

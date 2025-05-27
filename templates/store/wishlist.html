@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+  <div class="container">
+
+    <h2 class="text-center mb-4">Your Wishlist</h2>
+
+    {% if not wishlist_items %}
+    <div class="text-center">
+      <p>Your wishlist is empty.</p>
+      <a href="{% url 'store' %}" class="btn btn-primary">Continue Shopping</a>
+    </div>
+    {% else %}
+    
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+
+        {% for item in wishlist_items %}
+        <div class="card mb-3">
+          <div class="card-body d-flex align-items-center justify-content-between">
+
+            <!-- Product Info -->
+            <div class="d-flex align-items-center">
+              <img src="{{ item.product.images.url }}" class="img-sm rounded" style="width: 80px; height: auto; object-fit: cover;">
+              <div class="ml-3">
+                <h5 class="mb-1">{{ item.product.product_name }}</h5>
+                <p class="mb-0 text-muted small">
+                  {% if item.variations.all %}
+                    {% for var in item.variations.all %}
+                      {{ var.variation_category|capfirst }} : {{ var.variation_value|capfirst }}<br>
+                    {% endfor %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+
+            <!-- Remove Button -->
+            <a href="{% url 'remove_from_wishlist' item.product.id %}" class="btn btn-danger">
+              Remove
+            </a>
+
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="text-center mt-4">
+          <a href="{% url 'store' %}" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+
+      </div>
+    </div>
+    
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
